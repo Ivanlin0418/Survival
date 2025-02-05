@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Titanic Survival Prediction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        .container {
+            display: flex;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .form-container, .plot-container {
+            flex: 1;
+            margin: 10px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 5px;
+        }
+        input, select {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+        }
+        button {
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #28a745;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            flex: 1;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #result {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 18px;
+        }
+        .plot-container img {
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-container">
+            <h1>Titanic Survival Prediction</h1>
+            <form id="prediction-form">
+                <label for="pclass">Class of the ticket (1, 2, 3):</label>
+                <input type="number" id="pclass" name="pclass" required>
+                
+                <label for="sex">Sex (0=male, 1=female):</label>
+                <input type="number" id="sex" name="sex" required>
+                
+                <label for="age">Age:</label>
+                <input type="number" id="age" name="age" step="0.1" required>
+                
+                <label for="sibsp">Number of siblings/spouses aboard:</label>
+                <input type="number" id="sibsp" name="sibsp" required>
+                
+                <label for="parch">Number of parents/children aboard:</label>
+                <input type="number" id="parch" name="parch" required>
+                
+                <label for="fare">Fare:</label>
+                <input type="number" id="fare" name="fare" step="0.01" required>
+                
+                <div class="button-container">
+                    <button type="submit">Predict</button>
+                    <button type="button" id="simulate-button">Simulate</button>
+                </div>
+            </form>
+            <label for="scatterplot-parameter">Select parameter for scatterplot:</label>
+            <select id="scatterplot-parameter" name="parameter">
+                <option value="age">Age</option>
+                <option value="fare">Fare</option>
+                <option value="pclass">Class</option>
+                <option value="sex">Sex</option>
+                <option value="sibsp">Siblings/Spouses</option>
+                <option value="parch">Parents/Children</option>
+            </select>
+            <button type="button" id="scatterplot-button">Scatterplot</button>
+            <div id="result"></div>
+        </div>
+        <div class="plot-container">
+            <img id="scatterplot" src="" alt="Scatterplot will be displayed here">
+        </div>
+    </div>
+    <script>
+        document.getElementById('prediction-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result').innerText = data.result;
+            });
+        });
+
+        document.getElementById('simulate-button').addEventListener('click', function() {
+            fetch('/simulate', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result').innerText = data.result;
+            });
+        });
+
+        document.getElementById('scatterplot-button').addEventListener('click', function() {
+            const parameter = document.getElementById('scatterplot-parameter').value;
+            const formData = new FormData();
+            formData.append('parameter', parameter);
+            fetch('/scatterplot', {
+                method: 'POST',
+                body: formData
+            })
+            .then(() => {
+                fetch('/visuals/scatterplot')
+                .then(response => response.blob())
+                .then(blob => {
+                    const url = URL.createObjectURL(blob);
+                    document.getElementById('scatterplot').src = url;
+                });
+            });
+        });
+    </script>
+</body>
+</html>
